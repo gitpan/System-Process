@@ -42,36 +42,47 @@ You will get these methods:
 =over
 
 =item B<cpu>
+
 Returns %CPU.
 
 =item B<time>
+
 Returns TIME.
 
 =item B<stat>
+
 Returns STAT.
 
 =item B<tty>
+
 Returns TTY.
 
 =item B<user>
+
 Returns USER
 
 =item B<mem>
+
 Returns %MEM
 
 =item B<rss>
+
 Returns %RSS
 
 =item B<vsz>
+
 Returns VSZ
 
 =item B<command>
+
 Returns COMMAND
 
 =item B<start>
+
 Returns START
 
 =item B<pid>
+
 Returns PID
 
 =back
@@ -81,14 +92,17 @@ Anyway, you will get methods named as lowercase header values.
 =over 
 
 =item B<cankill>
+
 Checks possibility of 'kill' process.
 Returns 1 if possible
 
 =item B<kill>
+
 Kills a process with specified signal
     $process_object->kill(9);
 
 =item B<refresh>
+
 Refreshes data for current pid.
 
 =item B<write_pid>
@@ -111,7 +125,7 @@ no warnings qw/once/;
 
 use Carp;
 
-our $VERSION = 0.12;
+our $VERSION = 0.13;
 our $ABSTRACT = "Simple OO wrapper over ps.";
 
 sub import {
@@ -228,7 +242,7 @@ sub new {
 sub new_bundle {
     my ($class, $pattern) = @_;
 
-    return get_bundle($pattern);
+    return get_bundle($class, $pattern);
 }
 
 
@@ -258,7 +272,7 @@ sub process_info {
 
 
 sub get_bundle {
-    my $pattern = shift;
+    my ($class, $pattern) = @_;
     my $command = qq/ps uax/;
 
     my @res = `$command`;
@@ -281,8 +295,13 @@ sub get_bundle {
 
     for my $r (@res) {
         my $res = parse_output($header, $r);
-        bless $res, __PACKAGE__;
-        push @$bundle, $res;
+        my $object = {
+            pid         =>  $res->{pid},
+            _procinfo   =>  $res,
+        };
+
+        bless $object, $class;
+        push @$bundle, $object;
     }
     return $bundle;
 }
